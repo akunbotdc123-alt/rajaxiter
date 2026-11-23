@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GHOST UI</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0d;
+            --card-bg: #131317;
+            --card-border: #1e1e24;
+            --accent-red: #ff334b;
+            --text-main: #ffffff;
+            --text-sub: #7a7a85;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Key Login Overlay */
+        #key-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .key-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .key-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .key-card p {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .key-input {
+            width: 100%;
+            background: #18181d;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 42px 12px 14px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .key-input:focus {
+            border-color: var(--accent-red);
+        }
+
+        .toggle-visibility-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: var(--accent-red);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .login-btn:active {
+            opacity: 0.8;
+        }
+
+        .error-msg {
+            color: var(--accent-red);
+            font-size: 11px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* App Container (Hidden initially until key is correct) */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            background: var(--bg-color);
+            display: none;
+            flex-direction: column;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* Top Header */
+        .header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .badge {
+            background: rgba(255, 51, 75, 0.15);
+            color: var(--accent-red);
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #272730;
+            transition: .3s;
+            border-radius: 6px;
+        }
+
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 4px;
+        }
+
+        input:checked + .slider-toggle {
+            background-color: var(--accent-red);
+        }
+
+        input:checked + .slider-toggle:before {
+            transform: translateX(20px);
+        }
+
+        /* Aim Control Header */
+        .percentage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 14px;
+            margin-bottom: 12px;
+        }
+
+        .aim-height-label {
+            font-size: 10px;
+            color: var(--text-sub);
+            letter-spacing: 0.5px;
+        }
+
+        .percentage-display {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        /* Interactive Area */
+        .aim-interactive-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            height: 180px;
+            padding: 0 10px;
+            touch-action: none;
+        }
+
+        /* Siluet Karakter */
+        .silhouette-wrapper {
+            width: 110px;
+            height: 170px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .silhouette-head {
+            width: 40px;
+            height: 50px;
+            border-radius: 50% 50% 40% 40%;
+            background: repeating-linear-gradient(
+                -45deg,
+                #d32f2f,
+                #d32f2f 4px,
+                #18181d 4px,
+                #18181d 8px
+            );
+            border: 1px solid var(--accent-red);
+            margin-bottom: 2px;
+        }
+
+        .silhouette-body {
+            width: 95px;
+            height: 108px;
+            background: #18181d;
+            border-radius: 42px 42px 10px 10px;
+        }
+
+        /* Reticle Line & Box */
+        .reticle-line-wrapper {
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 15px;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .reticle-dashed-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.4);
+        }
+
+        .reticle-square {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid var(--text-main);
+            background: rgba(11, 11, 13, 0.5);
+            z-index: 2;
+        }
+
+        /* Levels Container */
+        .levels-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding-left: 24px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .level-line {
+            position: absolute;
+            left: 0;
+            top: 10px;
+            bottom: 10px;
+            width: 3px;
+            background: repeating-linear-gradient(
+                to bottom,
+                var(--accent-red),
+                var(--accent-red) 3px,
+                transparent 3px,
+                transparent 6px
+            );
+        }
+
+        .level-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #4a4a55;
+            font-weight: 700;
+        }
+
+        .level-row.active {
+            color: var(--text-main);
+        }
+
+        /* Pin Pointer */
+        .pin-pointer {
+            position: absolute;
+            left: -8px;
+            top: 15px;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .pin-head {
+            width: 16px;
+            height: 8px;
+            background: var(--text-main);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+        }
+
+        .pin-stem {
+            width: 10px;
+            height: 2px;
+            background: var(--accent-red);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- KEY LOGIN MODAL -->
+    <div id="key-modal">
+        <div class="key-card">
+            <h2>GHOST UI</h2>
+            <p>Masukkan akses key untuk melanjutkan</p>
+            <div class="input-group">
+                <input type="password" id="key-input" class="key-input" placeholder="Masukkan Key...">
+                <button type="button" class="toggle-visibility-btn" id="toggle-key-btn">👁️</button>
+            </div>
+            <button class="login-btn" id="login-btn">MASUK</button>
+            <div class="error-msg" id="error-msg">Key salah! Coba gunakan: raja</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container" id="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">GHOST</div>
+            <div class="header-actions">
+                <button class="icon-btn">🔔</button>
+                <button class="icon-btn">🌐 EN</button>
+            </div>
+        </div>
+
+        <div class="content">
+            
+            <!-- DRAG HS -->
+            <div class="card">
+                <div class="feature-header">
+                    <div class="feature-title">DRAG HS</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- AIMBOT -->
+            <div class="card">
+                <div class="feature-header">
+                    <div>
+                        <span class="feature-title">AIMBOT</span>
+                        <span class="badge">NEW</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+
+                <div class="percentage-header">
+                    <span class="aim-height-label">AIM HEIGHT</span>
+                    <div>
+                        <span id="level-title-display" style="font-size:10px; font-weight:bold; color:var(--text-sub); margin-right:4px;">HEAD</span>
+                        <span class="percentage-display" id="val-display">100%</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Touch Zone -->
+                <div class="aim-interactive-area" id="touch-zone">
+                    
+                    <!-- Siluet Karakter + Reticle Box -->
+                    <div class="silhouette-wrapper">
+                        <div class="silhouette-head"></div>
+                        <div class="silhouette-body"></div>
+                        
+                        <div class="reticle-line-wrapper" id="reticle-wrapper" style="top: 15px;">
+                            <div class="reticle-dashed-line"></div>
+                            <div class="reticle-square"></div>
+                        </div>
+                    </div>
+
+                    <!-- Level Indicator -->
+                    <div class="levels-container">
+                        <div class="level-line"></div>
+                        
+                        <div class="pin-pointer" id="pin-pointer" style="top: 15px;">
+                            <div class="pin-head"></div>
+                            <div class="pin-stem"></div>
+                        </div>
+
+                        <div class="level-row active" id="row-100"><span>— HEAD</span><span>100%</span></div>
+                        <div class="level-row" id="row-68"><span>— NECK</span><span>68%</span></div>
+                        <div class="level-row" id="row-50"><span>— SHOULDERS</span><span>50%</span></div>
+                        <div class="level-row" id="row-30"><span>— UPPER CHEST</span><span>30%</span></div>
+                        <div class="level-row" id="row-0"><span>— CHEST</span><span>0%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SILENT -->
+            <div class="card">
+                <div class="feature-header">
+                    <div class="feature-title">SILENT</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ESP LINE -->
+            <div class="card">
+                <div class="feature-header">
+                    <div class="feature-title">ESP LINE</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* --- KEY LOGIN SYSTEM --- */
+        const keyModal = document.getElementById('key-modal');
+        const appContainer = document.getElementById('app-container');
+        const keyInput = document.getElementById('key-input');
+        const loginBtn = document.getElementById('login-btn');
+        const toggleKeyBtn = document.getElementById('toggle-key-btn');
+        const errorMsg = document.getElementById('error-msg');
+
+        // Toggle lihat / sembunyikan key
+        toggleKeyBtn.addEventListener('click', () => {
+            if (keyInput.type === 'password') {
+                keyInput.type = 'text';
+                toggleKeyBtn.innerText = '🙈';
+            } else {
+                keyInput.type = 'password';
+                toggleKeyBtn.innerText = '👁️';
+            }
+        });
+
+        function handleLogin() {
+            const enteredKey = keyInput.value.trim();
+            if (enteredKey === 'raja') {
+                keyModal.style.display = 'none';
+                appContainer.style.display = 'flex';
+            } else {
+                errorMsg.style.display = 'block';
+                keyInput.style.borderColor = 'var(--accent-red)';
+            }
+        }
+
+        loginBtn.addEventListener('click', handleLogin);
+        keyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+
+        /* --- AIMBOT INTERACTIVE SYSTEM --- */
+        const touchZone = document.getElementById('touch-zone');
+        const display = document.getElementById('val-display');
+        const titleDisplay = document.getElementById('level-title-display');
+        const pinPointer = document.getElementById('pin-pointer');
+        const reticleWrapper = document.getElementById('reticle-wrapper');
+
+        const rows = {
+            100: document.getElementById('row-100'),
+            68: document.getElementById('row-68'),
+            50: document.getElementById('row-50'),
+            30: document.getElementById('row-30'),
+            0: document.getElementById('row-0')
+        };
+
+        const minY = 160; 
+        const maxY = 15;  
+
+        function updateAim(clientY) {
+            const rect = touchZone.getBoundingClientRect();
+            let relativeY = clientY - rect.top;
+
+            if (relativeY < maxY) relativeY = maxY;
+            if (relativeY > minY) relativeY = minY;
+
+            const percentage = Math.round(100 - ((relativeY - maxY) / (minY - maxY)) * 100);
+
+            pinPointer.style.top = relativeY + 'px';
+            reticleWrapper.style.top = relativeY + 'px';
+            display.innerText = percentage + '%';
+
+            Object.values(rows).forEach(r => r.classList.remove('active'));
+
+            if (percentage >= 85) {
+                rows[100].classList.add('active');
+                titleDisplay.innerText = "HEAD";
+            } else if (percentage >= 60) {
+                rows[68].classList.add('active');
+                titleDisplay.innerText = "NECK";
+            } else if (percentage >= 40) {
+                rows[50].classList.add('active');
+                titleDisplay.innerText = "SHOULDERS";
+            } else if (percentage >= 15) {
+                rows[30].classList.add('active');
+                titleDisplay.innerText = "UPPER CHEST";
+            } else {
+                rows[0].classList.add('active');
+                titleDisplay.innerText = "CHEST";
+            }
+        }
+
+        let isDragging = false;
+
+        touchZone.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            updateAim(e.touches[0].clientY);
+        });
+
+        touchZone.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                updateAim(e.touches[0].clientY);
+            }
+        });
+
+        touchZone.addEventListener('touchend', () => isDragging = false);
+
+        touchZone.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            updateAim(e.clientY);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) updateAim(e.clientY);
+        });
+
+        window.addEventListener('mouseup', () => isDragging = false);
+    </script>
+</body>
+</html>
